@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  description: From the todo list tutorial on goswagger.io
+  title: A Todo list application
+  version: 1.0.0
+servers:
+- url: /
+paths:
+  /:
+    get:
+      operationId: find_todos
+      parameters:
+      - explode: true
+        in: query
+        name: since
+        required: false
+        schema:
+          format: int64
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/item'
+                type: array
+          description: list the todo ope
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: error
+      tags:
+      - todos
+    post:
+      operationId: addOne
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/item'
+          description: Created
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: error
+      tags:
+      - todos
+  /{id}:
+    delete:
+      operationId: destroyOne
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      responses:
+        "204":
+          description: Deleted
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: error
+      tags:
+      - todos
+    put:
+      operationId: updateOne
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: int64
+          type: integer
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/item'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/item'
+          description: OK
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: error
+      tags:
+      - todos
+components:
+  schemas:
+    item:
+      example:
+        description: description
+        id: 0
+        completed: true
+      properties:
+        id:
+          format: int64
+          readOnly: true
+          type: integer
+        description:
+          minLength: 1
+          type: string
+        completed:
+          type: boolean
+      required:
+      - description
+      type: object
+    error:
+      properties:
+        code:
+          format: int64
+          type: integer
+        message:
+          type: string
+      required:
+      - message
+      type: object
