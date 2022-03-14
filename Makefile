@@ -14,7 +14,7 @@ oas-gen-client:
 	openapi-generator generate -i openapi.yml -g go-server -o ./client
 
 run:
-	go run ./cmd/todo-list-server/main.go --port=3333
+	go run ./server/main.go
 
 get:
 	curl -i 127.0.0.1:3333

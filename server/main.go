@@ -13,7 +13,7 @@ import (
 	"log"
 	"net/http"
 
-	openapi "github.com/GIT_USER_ID/GIT_REPO_ID/go"
+	openapi "github.com/kappa-lab/openapi-generator-playground/server/go"
 )
 
 func main() {
@@ -24,5 +24,5 @@ func main() {
 
 	router := openapi.NewRouter(TodosApiController)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":3333", router))
 }
