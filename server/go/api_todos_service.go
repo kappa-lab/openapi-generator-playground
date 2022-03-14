@@ -11,8 +11,10 @@ package openapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
-	"errors"
+	"sync"
+	"sync/atomic"
 )
 
 // TodosApiService is a service that implements the logic for the TodosApiServicer
@@ -26,58 +28,115 @@ func NewTodosApiService() TodosApiServicer {
 	return &TodosApiService{}
 }
 
-// AddOne - 
+// AddOne -
 func (s *TodosApiService) AddOne(ctx context.Context, item Item) (ImplResponse, error) {
-	// TODO - update AddOne with the required logic for this service method.
-	// Add api_todos_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(201, Item{}) or use other options such as http.Ok ...
-	//return Response(201, Item{}), nil
-
-	//TODO: Uncomment the next line to return response Response(0, ModelError{}) or use other options such as http.Ok ...
-	//return Response(0, ModelError{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("AddOne method not implemented")
+	newItem, _ := addItem(&item)
+	return Response(http.StatusCreated, newItem), nil
 }
 
-// DestroyOne - 
+// DestroyOne -
 func (s *TodosApiService) DestroyOne(ctx context.Context, id int64) (ImplResponse, error) {
-	// TODO - update DestroyOne with the required logic for this service method.
-	// Add api_todos_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
-
-	//TODO: Uncomment the next line to return response Response(204, {}) or use other options such as http.Ok ...
-	//return Response(204, nil),nil
-
-	//TODO: Uncomment the next line to return response Response(0, ModelError{}) or use other options such as http.Ok ...
-	//return Response(0, ModelError{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("DestroyOne method not implemented")
+	err := deleteItem(id)
+	if err != nil {
+		return Response(http.StatusNotFound,
+			ModelError{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("not fountd id:%d", id),
+			}), nil
+	} else {
+		return Response(http.StatusNoContent, nil), nil
+	}
 }
 
-// FindTodos - 
+// FindTodos -
 func (s *TodosApiService) FindTodos(ctx context.Context, since int64, limit int32) (ImplResponse, error) {
-	// TODO - update FindTodos with the required logic for this service method.
-	// Add api_todos_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	if limit == 0 {
+		limit = 20
+	}
 
-	//TODO: Uncomment the next line to return response Response(200, []Item{}) or use other options such as http.Ok ...
-	//return Response(200, []Item{}), nil
-
-	//TODO: Uncomment the next line to return response Response(0, ModelError{}) or use other options such as http.Ok ...
-	//return Response(0, ModelError{}), nil
-
-	return Response(http.StatusNotImplemented, nil), errors.New("FindTodos method not implemented")
+	result := getItems(since, limit)
+	return Response(http.StatusOK, result), nil
 }
 
-// UpdateOne - 
+// UpdateOne -
 func (s *TodosApiService) UpdateOne(ctx context.Context, id int64, item Item) (ImplResponse, error) {
-	// TODO - update UpdateOne with the required logic for this service method.
-	// Add api_todos_service.go to the .openapi-generator-ignore to avoid overwriting this service implementation when updating open api generation.
+	res, err := updateItem(id, &item)
+	if err != nil {
+		return Response(http.StatusNotFound,
+			ModelError{
+				Code:    http.StatusNotFound,
+				Message: fmt.Sprintf("not fountd id:%d", id),
+			}), nil
+	} else {
+		return Response(http.StatusOK, res), nil
+	}
+}
 
-	//TODO: Uncomment the next line to return response Response(200, Item{}) or use other options such as http.Ok ...
-	//return Response(200, Item{}), nil
+var (
+	items     = make(map[int64]*Item)
+	lastID    int64
+	itemsLock = &sync.Mutex{}
+)
 
-	//TODO: Uncomment the next line to return response Response(0, ModelError{}) or use other options such as http.Ok ...
-	//return Response(0, ModelError{}), nil
+func getItems(since int64, limit int32) (result []*Item) {
+	result = make([]*Item, 0)
+	for id, item := range items {
+		if len(result) >= int(limit) {
+			return
+		}
+		if since == 0 || id > since {
+			result = append(result, item)
+		}
+	}
+	return
+}
 
-	return Response(http.StatusNotImplemented, nil), errors.New("UpdateOne method not implemented")
+func addItem(item *Item) (*Item, error) {
+	itemsLock.Lock()
+	defer itemsLock.Unlock()
+
+	id := atomic.AddInt64(&lastID, 1)
+	newItem := &Item{
+		Description: item.Description,
+		Id:          id,
+		Completed:   false,
+	}
+
+	items[id] = newItem
+
+	return newItem, nil
+}
+
+func updateItem(id int64, item *Item) (*Item, error) {
+	itemsLock.Lock()
+	defer itemsLock.Unlock()
+
+	_, exixst := items[id]
+	if !exixst {
+		return nil, fmt.Errorf("not fountd id:%d", id)
+	}
+
+	newItem := &Item{
+		Description: item.Description,
+		Id:          id,
+		Completed:   item.Completed,
+	}
+
+	items[newItem.Id] = newItem
+
+	return newItem, nil
+}
+
+func deleteItem(id int64) error {
+	itemsLock.Lock()
+	defer itemsLock.Unlock()
+
+	_, exixst := items[id]
+	if !exixst {
+		return fmt.Errorf("not fountd id:%d", id)
+	}
+
+	delete(items, id)
+
+	return nil
 }
