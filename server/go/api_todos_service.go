@@ -38,14 +38,24 @@ func (s *TodosApiService) AddOne(ctx context.Context, item Item) (ImplResponse, 
 func (s *TodosApiService) DestroyOne(ctx context.Context, id int64) (ImplResponse, error) {
 	err := deleteItem(id)
 	if err != nil {
-		return Response(http.StatusNotFound,
-			ModelError{
-				Code:    http.StatusNotFound,
-				Message: fmt.Sprintf("not fountd id:%d", id),
-			}), nil
+		switch err.(type) {
+		case NotFoundError:
+			return Response(http.StatusNotFound,
+				ModelError{
+					Code:    http.StatusNotFound,
+					Message: err.Error(),
+				}), nil
+		default:
+			return Response(http.StatusInternalServerError,
+				ModelError{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				}), nil
+		}
 	} else {
 		return Response(http.StatusNoContent, nil), nil
 	}
+
 }
 
 // FindTodos -
@@ -62,11 +72,20 @@ func (s *TodosApiService) FindTodos(ctx context.Context, since int64, limit int3
 func (s *TodosApiService) UpdateOne(ctx context.Context, id int64, item Item) (ImplResponse, error) {
 	res, err := updateItem(id, &item)
 	if err != nil {
-		return Response(http.StatusNotFound,
-			ModelError{
-				Code:    http.StatusNotFound,
-				Message: fmt.Sprintf("not fountd id:%d", id),
-			}), nil
+		switch err.(type) {
+		case NotFoundError:
+			return Response(http.StatusNotFound,
+				ModelError{
+					Code:    http.StatusNotFound,
+					Message: err.Error(),
+				}), nil
+		default:
+			return Response(http.StatusInternalServerError,
+				ModelError{
+					Code:    http.StatusInternalServerError,
+					Message: err.Error(),
+				}), nil
+		}
 	} else {
 		return Response(http.StatusOK, res), nil
 	}
@@ -113,7 +132,7 @@ func updateItem(id int64, item *Item) (*Item, error) {
 
 	_, exixst := items[id]
 	if !exixst {
-		return nil, fmt.Errorf("not fountd id:%d", id)
+		return nil, NewNotFoundError(fmt.Sprintf("id:%d", id))
 	}
 
 	newItem := &Item{
@@ -133,10 +152,21 @@ func deleteItem(id int64) error {
 
 	_, exixst := items[id]
 	if !exixst {
-		return fmt.Errorf("not fountd id:%d", id)
+		return NewNotFoundError(fmt.Sprintf("id:%d", id))
 	}
 
 	delete(items, id)
 
 	return nil
+}
+
+type NotFoundError struct {
+	additionalMessage string
+}
+
+func (e NotFoundError) Error() string {
+	return fmt.Sprintf("NOT FOUND ERROR: %s", e.additionalMessage)
+}
+func NewNotFoundError(additionalMessage string) NotFoundError {
+	return NotFoundError{additionalMessage: additionalMessage}
 }
