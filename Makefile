@@ -20,13 +20,17 @@ get:
 	curl -i 127.0.0.1:3333
 
 add:
-	curl -i localhost:3333 -X POST -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' -d "{\"description\":\"message $RANDOM\"}"
+	curl -i localhost:3333 -X POST -H 'Content-Type: application/json' -d "{\"description\":\"message $RANDOM\"}"
 
 modify:
-	curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' -d '{"description":"go shopping"}'
+	curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/json' -d '{"description":"go shopping"}'
 
 delete:
-	curl -i localhost:3333/1 -X DELETE -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' 
+	curl -i localhost:3333/1 -X DELETE -H 'Content-Type: application/json' 
+
+delete-badreq:
+	curl -i localhost:3333/a -X DELETE -H 'Content-Type: application/json' 
+
 
 test:
 	go test -v ./client 	
