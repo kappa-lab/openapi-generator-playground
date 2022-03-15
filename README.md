@@ -18,7 +18,7 @@ make get
 
 curl -i 127.0.0.1:3333
 HTTP/1.1 200 OK
-Content-Type: application/io.goswagger.examples.todo-list.v1+json
+Content-Type: application/json
 Date: Thu, 24 Feb 2022 01:38:34 GMT
 Content-Length: 3
 
@@ -29,9 +29,9 @@ Content-Length: 3
 ```sh
 make add
 
-curl -i localhost:3333 -X POST -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' -d "{\"description\":\"message ANDOM\"}"
+curl -i localhost:3333 -X POST -H 'Content-Type: application/json' -d "{\"description\":\"message ANDOM\"}"
 HTTP/1.1 201 Created
-Content-Type: application/io.goswagger.examples.todo-list.v1+json
+Content-Type: application/json
 Date: Thu, 24 Feb 2022 01:39:13 GMT
 Content-Length: 39
 
@@ -42,9 +42,9 @@ Content-Length: 39
 ```sh
 make modify
 
-curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' -d '{"description":"go shopping"}'
+curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/json' -d '{"description":"go shopping"}'
 HTTP/1.1 200 OK
-Content-Type: application/io.goswagger.examples.todo-list.v1+json
+Content-Type: application/json
 Date: Thu, 24 Feb 2022 01:39:41 GMT
 Content-Length: 37
 
@@ -57,7 +57,7 @@ Content-Length: 37
 ```sh
 make delete
 
-curl -i localhost:3333/1 -X DELETE -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' 
+curl -i localhost:3333/1 -X DELETE -H 'Content-Type: application/json' 
 HTTP/1.1 204 No Content
 Date: Thu, 24 Feb 2022 01:40:03 GMT
 ```
@@ -67,7 +67,7 @@ check
  make get
 curl -i 127.0.0.1:3333
 HTTP/1.1 200 OK
-Content-Type: application/io.goswagger.examples.todo-list.v1+json
+Content-Type: application/json
 Date: Thu, 24 Feb 2022 01:40:24 GMT
 Content-Length: 3
 
@@ -78,11 +78,12 @@ Content-Length: 3
 ## not found error
 ```sh
 make modify
-curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/io.goswagger.examples.todo-list.v1+json' -d '{"description":"go shopping"}'
+curl -i localhost:3333/1 -X PUT -H 'Content-Type: application/json' -d '{"description":"go shopping"}'
 HTTP/1.1 404 Not Found
-Content-Type: application/io.goswagger.examples.todo-list.v1+json
+Content-Type: application/json
 Date: Thu, 24 Feb 2022 01:40:58 GMT
 Content-Length: 41
 
 {"code":404,"message":"not fountd id:1"}
 ```
+
